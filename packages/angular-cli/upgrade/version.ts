@@ -97,14 +97,12 @@ export class Version {
   }
 
   static assertAngularVersionIs2_3_1OrHigher(projectRoot: string) {
-    const angularCorePath = path.join(projectRoot, 'node_modules/@angular/core');
-    const pkgJson = existsSync(angularCorePath)
-      ? JSON.parse(readFileSync(path.join(angularCorePath, 'package.json'), 'utf8'))
-      : null;
 
-    // Just check @angular/core.
-    if (pkgJson && pkgJson['version']) {
+    try {
+      const pkgJsonPath = resolve.sync('@angular/cores/package.json');
+      const pkgJson = JSON.parse(readFileSync(pkgJsonPath, 'utf8'));
       const v = new Version(pkgJson['version']);
+
       if (v.isLocal()) {
         console.warn(yellow('Using a local version of angular. Proceeding with care...'));
       } else {
@@ -118,9 +116,11 @@ export class Version {
           process.exit(3);
         }
       }
-    } else {
+
+    } catch(err) {
       console.error(bold(red(stripIndents`
         You seem to not be dependending on "@angular/core". This is an error.
+        Error message: ${err.message}
       `)));
       process.exit(2);
     }
